@@ -208,3 +208,5 @@ resetButton.addEventListener("click", () => {
     conn.send({ type: "reset" });
   }
 });
+
+const test = ;   // განზრახ შეცდომა CI-ის საჩვენებლად
