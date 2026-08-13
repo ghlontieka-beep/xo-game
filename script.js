@@ -1,6 +1,7 @@
 const cells = document.querySelectorAll(".cell");
 const statusText = document.getElementById("status");
 const resetButton = document.getElementById("reset");
+const winLine = document.getElementById("win-line");
 const scoreElements = {
   X: document.getElementById("score-x"),
   O: document.getElementById("score-o"),
@@ -27,12 +28,44 @@ function addScore(key) {
 }
 
 function checkWinner() {
-  for (const [a, b, c] of WINNING_LINES) {
+  for (const line of WINNING_LINES) {
+    const [a, b, c] = line;
     if (board[a] !== "" && board[a] === board[b] && board[b] === board[c]) {
-      return board[a];
+      return { player: board[a], line };
     }
   }
   return null;
+}
+
+// უჯრის ცენტრის კოორდინატები დაფის შიგნით
+function cellCenter(index) {
+  const cell = cells[index];
+  return {
+    x: cell.offsetLeft + cell.offsetWidth / 2,
+    y: cell.offsetTop + cell.offsetHeight / 2
+  };
+}
+
+function drawWinLine(line) {
+  const start = cellCenter(line[0]);
+  const end = cellCenter(line[2]);
+
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const angle = Math.atan2(dy, dx);        // ხაზის დახრა რადიანებში
+  const distance = Math.hypot(dx, dy);     // მანძილი ორ ცენტრს შორის
+
+  const OVERHANG = 14;                     // ცოტათი გავცდეთ უჯრებს ორივე მხარეს
+
+  winLine.style.left = `${start.x - Math.cos(angle) * OVERHANG}px`;
+  winLine.style.top = `${start.y - Math.sin(angle) * OVERHANG - 3}px`;
+  winLine.style.width = `${distance + OVERHANG * 2}px`;
+  winLine.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+  winLine.classList.add("visible");
+}
+
+function hideWinLine() {
+  winLine.classList.remove("visible");
 }
 
 function handleClick(event) {
@@ -45,12 +78,13 @@ function handleClick(event) {
   board[index] = currentPlayer;
   event.target.textContent = currentPlayer;
 
-  const winner = checkWinner();
+  const result = checkWinner();
 
-  if (winner) {
-    statusText.textContent = `გაიმარჯვა ${winner}-მა! 🎉`;
+  if (result) {
+    statusText.textContent = `გაიმარჯვა ${result.player}-მა! 🎉`;
     gameOver = true;
-    addScore(winner);
+    addScore(result.player);
+    drawWinLine(result.line);
     cells.forEach(cell => cell.disabled = true);
     return;
   }
@@ -71,6 +105,7 @@ function resetGame() {
   currentPlayer = "X";
   gameOver = false;
   statusText.textContent = "ახლა სვლა: X";
+  hideWinLine();
   cells.forEach(cell => {
     cell.textContent = "";
     cell.disabled = false;
