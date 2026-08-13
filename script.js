@@ -38,13 +38,7 @@ let peer = null;   // ჩემი PeerJS კავშირი
 let conn = null;   // მოწინააღმდეგესთან კავშირი
 let myMark = null; // "X" (შემქმნელი) ან "O" (შემოსული)
 
-// --- მოკლე კოდის გენერაცია (5 სიმბოლო, მსგავსი ასოების გარეშე) ---
-function makeCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 0/O და 1/I ამოღებულია
-  let code = "";
-  for (let i = 0; i < 5; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-// ქულები ინახება მთელი სესიის განმავლობაში (reset-ი არ ანულებს)
+// --- ქულები (ინახება მთელი სესიის განმავლობაში, reset-ი არ ანულებს) ---
 const score = { X: 0, O: 0, draw: 0 };
 
 function addScore(key) {
@@ -52,11 +46,12 @@ function addScore(key) {
   scoreElements[key].textContent = score[key];
 }
 
-function checkWinner() {
-  for (const [a, b, c] of WINNING_LINES) {
-    if (board[a] !== "" && board[a] === board[b] && board[b] === board[c]) {
-      return board[a];
-    }
+// --- მოკლე კოდის გენერაცია (5 სიმბოლო, მსგავსი ასოების გარეშე) ---
+function makeCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 0/O და 1/I ამოღებულია
+  let code = "";
+  for (let i = 0; i < 5; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
 }
@@ -192,7 +187,7 @@ function checkWinner() {
   return null;
 }
 
-// --- თავიდan დაწყება ---
+// --- თავიდან დაწყება ---
 function doReset() {
   board = ["", "", "", "", "", "", "", "", ""];
   currentPlayer = "X";
