@@ -1,6 +1,11 @@
 const cells = document.querySelectorAll(".cell");
 const statusText = document.getElementById("status");
 const resetButton = document.getElementById("reset");
+const scoreElements = {
+  X: document.getElementById("score-x"),
+  O: document.getElementById("score-o"),
+  draw: document.getElementById("score-draw")
+};
 
 // მოგებული კომბინაციები (უჯრების ინდექსები)
 const WINNING_LINES = [
@@ -12,6 +17,14 @@ const WINNING_LINES = [
 let board = ["", "", "", "", "", "", "", "", ""];
 let currentPlayer = "X";
 let gameOver = false;
+
+// ქულები ინახება მთელი სესიის განმავლობაში (reset-ი არ ანულებს)
+const score = { X: 0, O: 0, draw: 0 };
+
+function addScore(key) {
+  score[key] += 1;
+  scoreElements[key].textContent = score[key];
+}
 
 function checkWinner() {
   for (const [a, b, c] of WINNING_LINES) {
@@ -37,6 +50,7 @@ function handleClick(event) {
   if (winner) {
     statusText.textContent = `გაიმარჯვა ${winner}-მა! 🎉`;
     gameOver = true;
+    addScore(winner);
     cells.forEach(cell => cell.disabled = true);
     return;
   }
@@ -44,6 +58,7 @@ function handleClick(event) {
   if (!board.includes("")) {
     statusText.textContent = "ფრე!";
     gameOver = true;
+    addScore("draw");
     return;
   }
 
