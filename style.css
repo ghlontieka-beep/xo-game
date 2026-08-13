@@ -76,6 +76,18 @@ button:hover {
 }
 
 /* ---- თამაშის დაფა ---- */
+#score {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+#score b {
+  font-size: 20px;
+}
+
 #status {
   font-size: 20px;
   min-height: 28px;

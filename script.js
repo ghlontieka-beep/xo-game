@@ -13,6 +13,11 @@ const codeBanner = document.getElementById("codeBanner");
 const statusText = document.getElementById("status");
 const cells = document.querySelectorAll(".cell");
 const resetButton = document.getElementById("reset");
+const scoreElements = {
+  X: document.getElementById("score-x"),
+  O: document.getElementById("score-o"),
+  draw: document.getElementById("score-draw")
+};
 
 // --- მოგებული კომბინაციები (უჯრების ინდექსები) ---
 const WINNING_LINES = [
@@ -39,6 +44,19 @@ function makeCode() {
   let code = "";
   for (let i = 0; i < 5; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
+// ქულები ინახება მთელი სესიის განმავლობაში (reset-ი არ ანულებს)
+const score = { X: 0, O: 0, draw: 0 };
+
+function addScore(key) {
+  score[key] += 1;
+  scoreElements[key].textContent = score[key];
+}
+
+function checkWinner() {
+  for (const [a, b, c] of WINNING_LINES) {
+    if (board[a] !== "" && board[a] === board[b] && board[b] === board[c]) {
+      return board[a];
+    }
   }
   return code;
 }
@@ -138,6 +156,7 @@ function applyMove(index, player) {
     statusText.textContent =
       (winner === myMark ? "შენ გაიმარჯვე! 🎉" : "მოწინააღმდეგემ გაიმარჯვა 😔") + " (" + winner + ")";
     gameOver = true;
+    addScore(winner);
     cells.forEach(cell => cell.disabled = true);
     return;
   }
@@ -145,6 +164,7 @@ function applyMove(index, player) {
   if (!board.includes("")) {
     statusText.textContent = "ფრე!";
     gameOver = true;
+    addScore("draw");
     return;
   }
 
