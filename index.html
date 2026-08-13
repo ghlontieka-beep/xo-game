@@ -3,13 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XO თამაში</title>
+  <title>XO თამაში — ონლაინ</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <h1>XO თამაში</h1>
 
+    <!-- ლობი: თამაშის შექმნა ან შესვლა -->
+    <section id="lobby">
+      <p class="hint">ითამაშე მეგობართან — ორი კომპიუტერიდან</p>
+
+      <div class="lobby-box">
+        <button id="createBtn">ახალი თამაშის შექმნა</button>
+      </div>
+
+      <div class="lobby-or">ან</div>
+
+      <div class="lobby-box">
+        <input id="codeInput" type="text" placeholder="კოდი" maxlength="5" autocomplete="off">
+        <button id="joinBtn">თამაშში შესვლა</button>
+      </div>
+
+      <p id="lobbyStatus" class="lobby-status"></p>
+    </section>
+
+    <!-- თამაშის დაფა (თავიდან დამალული) -->
+    <section id="game" class="hidden">
+      <p id="codeBanner" class="code-banner"></p>
+      <p id="status">ახლა სვლა: X</p>
+
+      <div id="board">
+        <button class="cell" data-index="0"></button>
+        <button class="cell" data-index="1"></button>
+        <button class="cell" data-index="2"></button>
+        <button class="cell" data-index="3"></button>
+        <button class="cell" data-index="4"></button>
+        <button class="cell" data-index="5"></button>
+        <button class="cell" data-index="6"></button>
+        <button class="cell" data-index="7"></button>
+        <button class="cell" data-index="8"></button>
+      </div>
+
+      <button id="reset">თავიდან დაწყება</button>
+    </section>
     <div id="score">
       <span>X <b id="score-x">0</b></span>
       <span>ფრე <b id="score-draw">0</b></span>
@@ -33,6 +70,8 @@
     <button id="reset">თავიდან დაწყება</button>
   </main>
 
+  <!-- PeerJS: მოთამაშეებს შორის პირდაპირი კავშირი (WebRTC), სერვერის გარეშე -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
