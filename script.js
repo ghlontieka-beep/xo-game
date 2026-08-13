@@ -14,6 +14,7 @@ const statusText = document.getElementById("status");
 const cells = document.querySelectorAll(".cell");
 const resetButton = document.getElementById("reset");
 const winLine = document.getElementById("win-line");
+const winPhraseText = document.getElementById("winPhrase");
 const scoreElements = {
   X: document.getElementById("score-x"),
   O: document.getElementById("score-o"),
@@ -25,6 +26,22 @@ const WINNING_LINES = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8], // ჰორიზონტალური
   [0, 3, 6], [1, 4, 7], [2, 5, 8], // ვერტიკალური
   [0, 4, 8], [2, 4, 6]             // დიაგონალური
+];
+
+// --- სახალისო ფრაზები გამარჯვებისას ---
+const WIN_PHRASES = [
+  "ვაშა! სამი უჯრა, ერთი გენიოსი! 🧠",
+  "ბრწყინვალე სვლა — ნაპოლეონიც შეშურდებოდა! 🎩",
+  "მოწინააღმდეგე ჯერ კიდევ ცდილობს გაიგოს რა მოხდა 🤔",
+  "შენ არ თამაშობ — შენ ხელოვნებას ქმნი! 🎨",
+  "ეს გამარჯვება ისტორიაში შევა 📜",
+  "X და O შენს წინაშე ქედს იხრიან 👑",
+  "მოწინააღმდეგე უკვე ტუტორიალს ეძებს 📺",
+  "ტვინი ტურბო რეჟიმში! 🚀",
+  "განაგრძე ასე — დღეს შენი დღეა! ☀️",
+  "სტრატეგია + სიმშვიდე = გამარჯვება 💪",
+  "ასეთი სვლები ვარჯიშით მოდის ⚡",
+  "დაფაზე შენი ხელწერა ჩანს ✍️"
 ];
 
 // უნიკალური პრეფიქსი, რომ სხვისი თამაშის კოდს არ დაემთხვეს
@@ -155,6 +172,7 @@ function applyMove(index, player) {
     gameOver = true;
     addScore(result.player);
     drawWinLine(result.line);
+    showWinPhrase(result.line);
     cells.forEach(cell => cell.disabled = true);
     return;
   }
@@ -224,12 +242,33 @@ function hideWinLine() {
   winLine.classList.remove("visible");
 }
 
+// --- სახალისო ფრაზა ---
+// ფრაზა დეტერმინირებულად ირჩევა, არა შემთხვევით: ონლაინ თამაშში ორივე ბრაუზერი
+// ერთსა და იმავე კოდს ასრულებს, ამიტომ Math.random() თითოეულს სხვადასხვა ფრაზას
+// მისცემდა. აქ არჩევანი მხოლოდ თამაშის მდგომარეობაზეა დამოკიდებული — ორივესთან ერთნაირად.
+function showWinPhrase(line) {
+  const movesMade = board.filter(cell => cell !== "").length;
+  const lineIndex = WINNING_LINES.indexOf(line);
+  const gamesPlayed = score.X + score.O + score.draw;
+
+  const index = (movesMade * 7 + lineIndex * 3 + gamesPlayed) % WIN_PHRASES.length;
+
+  winPhraseText.textContent = WIN_PHRASES[index];
+  winPhraseText.classList.add("show");
+}
+
+function hideWinPhrase() {
+  winPhraseText.textContent = "";
+  winPhraseText.classList.remove("show");
+}
+
 // --- თავიდან დაწყება ---
 function doReset() {
   board = ["", "", "", "", "", "", "", "", ""];
   currentPlayer = "X";
   gameOver = false;
   hideWinLine();
+  hideWinPhrase();
   cells.forEach(cell => {
     cell.textContent = "";
     cell.disabled = false;
