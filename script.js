@@ -13,6 +13,7 @@ const codeBanner = document.getElementById("codeBanner");
 const statusText = document.getElementById("status");
 const cells = document.querySelectorAll(".cell");
 const resetButton = document.getElementById("reset");
+const winLine = document.getElementById("win-line");
 const scoreElements = {
   X: document.getElementById("score-x"),
   O: document.getElementById("score-o"),
@@ -146,12 +147,14 @@ function applyMove(index, player) {
   board[index] = player;
   cells[index].textContent = player;
 
-  const winner = checkWinner();
-  if (winner) {
+  const result = checkWinner();
+  if (result) {
     statusText.textContent =
-      (winner === myMark ? "შენ გაიმარჯვე! 🎉" : "მოწინააღმდეგემ გაიმარჯვა 😔") + " (" + winner + ")";
+      (result.player === myMark ? "შენ გაიმარჯვე! 🎉" : "მოწინააღმდეგემ გაიმარჯვა 😔") +
+      " (" + result.player + ")";
     gameOver = true;
-    addScore(winner);
+    addScore(result.player);
+    drawWinLine(result.line);
     cells.forEach(cell => cell.disabled = true);
     return;
   }
@@ -178,13 +181,47 @@ function updateStatus() {
 }
 
 // --- გამარჯვების შემოწმება ---
+// აბრუნებს გამარჯვებულ ასოსაც და იმ სამი უჯრის ინდექსებსაც, რომლებმაც მოგება მოიტანა
 function checkWinner() {
-  for (const [a, b, c] of WINNING_LINES) {
+  for (const line of WINNING_LINES) {
+    const [a, b, c] = line;
     if (board[a] !== "" && board[a] === board[b] && board[b] === board[c]) {
-      return board[a];
+      return { player: board[a], line };
     }
   }
   return null;
+}
+
+// --- გამარჯვების ხაზი ---
+// უჯრის ცენტრის კოორდინატები დაფის შიგნით
+function cellCenter(index) {
+  const cell = cells[index];
+  return {
+    x: cell.offsetLeft + cell.offsetWidth / 2,
+    y: cell.offsetTop + cell.offsetHeight / 2
+  };
+}
+
+function drawWinLine(line) {
+  const start = cellCenter(line[0]);
+  const end = cellCenter(line[2]);
+
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const angle = Math.atan2(dy, dx);        // ხაზის დახრა რადიანებში
+  const distance = Math.hypot(dx, dy);     // მანძილი ორ ცენტრს შორის
+
+  const OVERHANG = 14;                     // ცოტათი გავცდეთ უჯრებს ორივე მხარეს
+
+  winLine.style.left = `${start.x - Math.cos(angle) * OVERHANG}px`;
+  winLine.style.top = `${start.y - Math.sin(angle) * OVERHANG - 3}px`;
+  winLine.style.width = `${distance + OVERHANG * 2}px`;
+  winLine.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+  winLine.classList.add("visible");
+}
+
+function hideWinLine() {
+  winLine.classList.remove("visible");
 }
 
 // --- თავიდან დაწყება ---
@@ -192,6 +229,7 @@ function doReset() {
   board = ["", "", "", "", "", "", "", "", ""];
   currentPlayer = "X";
   gameOver = false;
+  hideWinLine();
   cells.forEach(cell => {
     cell.textContent = "";
     cell.disabled = false;
