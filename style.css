@@ -15,6 +15,67 @@ h1 {
   margin-bottom: 8px;
 }
 
+.hidden {
+  display: none;
+}
+
+/* ---- ლობი ---- */
+.hint {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.lobby-box {
+  margin: 10px 0;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.lobby-or {
+  margin: 12px 0;
+  color: #999;
+}
+
+#codeInput {
+  font-size: 16px;
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  width: 120px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.lobby-status {
+  margin-top: 16px;
+  min-height: 24px;
+  color: #444;
+}
+
+.code-banner {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #1e66f5;
+}
+
+/* ---- ღილაკები ---- */
+button {
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #89b4fa;
+  color: #1e1e2e;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #74a7f7;
+}
+
+/* ---- თამაშის დაფა ---- */
 #score {
   display: flex;
   justify-content: center;
@@ -39,7 +100,8 @@ h1 {
   grid-template-columns: repeat(3, 90px);
   grid-template-rows: repeat(3, 90px);
   gap: 8px;
-  margin-bottom: 20px;
+  margin: 0 auto 20px;
+  justify-content: center;
 }
 
 /* გამარჯვების ხაზი: გარე div-ი მხოლოდ ათავსებს და ატრიალებს */
@@ -79,6 +141,7 @@ h1 {
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  padding: 0;
 }
 
 .cell:hover:not(:disabled) {
@@ -90,11 +153,5 @@ h1 {
 }
 
 #reset {
-  font-size: 16px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #89b4fa;
-  color: #1e1e2e;
-  cursor: pointer;
+  background: #a6e3a1;
 }
