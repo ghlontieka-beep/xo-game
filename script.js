@@ -7,6 +7,7 @@ const lobby = document.getElementById("lobby");
 const gameSection = document.getElementById("game");
 const createBtn = document.getElementById("createBtn");
 const joinBtn = document.getElementById("joinBtn");
+const localBtn = document.getElementById("localBtn");
 const codeInput = document.getElementById("codeInput");
 const lobbyStatus = document.getElementById("lobbyStatus");
 const codeBanner = document.getElementById("codeBanner");
@@ -55,6 +56,9 @@ let gameOver = false;
 let peer = null;   // ჩემი PeerJS კავშირი
 let conn = null;   // მოწინააღმდეგესთან კავშირი
 let myMark = null; // "X" (შემქმნელი) ან "O" (შემოსული)
+
+// ერთ კომპიუტერზე თამაშის რეჟიმი: ორივე მოთამაშე ერთ ეკრანთან, PeerJS-ის გარეშე
+let localMode = false;
 
 // --- ქულები (ინახება მთელი სესიის განმავლობაში, reset-ი არ ანულებს) ---
 const score = { X: 0, O: 0, draw: 0 };
@@ -123,6 +127,13 @@ joinBtn.addEventListener("click", () => {
   });
 });
 
+// --- ერთ კომპიუტერზე თამაში (პარტნიორის გარეშე) ---
+localBtn.addEventListener("click", () => {
+  localMode = true;
+  myMark = null;
+  startGame();
+});
+
 // --- მოწინააღმდეგის შეტყობინებების მოსმენა ---
 function setupConnection() {
   conn.on("data", (msg) => {
@@ -144,13 +155,25 @@ function startGame() {
   lobby.classList.add("hidden");
   gameSection.classList.remove("hidden");
   doReset();
-  codeBanner.textContent = myMark === "X" ? "შენ ხარ X (პირველი სვლა)" : "შენ ხარ O";
+
+  if (localMode) {
+    codeBanner.textContent = "ერთ კომპიუტერზე თამაში — რიგრიგობით";
+  } else {
+    codeBanner.textContent = myMark === "X" ? "შენ ხარ X (პირველი სვლა)" : "შენ ხარ O";
+  }
 }
 
 // --- უჯრაზე დაჭერა ---
 function handleClick(event) {
   const index = Number(event.target.dataset.index);
   if (gameOver || board[index] !== "") return;
+
+  // ერთ კომპიუტერზე ორივე მოთამაშე ერთსა და იმავე დაფაზე თამაშობს
+  if (localMode) {
+    applyMove(index, currentPlayer);
+    return;
+  }
+
   if (currentPlayer !== myMark) return; // მხოლოდ შენს სვლაზე შეგიძლია
 
   applyMove(index, myMark);
@@ -166,9 +189,10 @@ function applyMove(index, player) {
 
   const result = checkWinner();
   if (result) {
-    statusText.textContent =
-      (result.player === myMark ? "შენ გაიმარჯვე! 🎉" : "მოწინააღმდეგემ გაიმარჯვა 😔") +
-      " (" + result.player + ")";
+    statusText.textContent = localMode
+      ? `გაიმარჯვა ${result.player}-მა! 🎉`
+      : (result.player === myMark ? "შენ გაიმარჯვე! 🎉" : "მოწინააღმდეგემ გაიმარჯვა 😔") +
+        " (" + result.player + ")";
     gameOver = true;
     addScore(result.player);
     drawWinLine(result.line);
@@ -191,6 +215,12 @@ function applyMove(index, player) {
 // --- სტატუსის განახლება (ვისი სვლაა) ---
 function updateStatus() {
   if (gameOver) return;
+
+  if (localMode) {
+    statusText.textContent = "ახლა სვლა: " + currentPlayer;
+    return;
+  }
+
   if (currentPlayer === myMark) {
     statusText.textContent = "შენი სვლაა (" + myMark + ")";
   } else {

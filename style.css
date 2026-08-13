@@ -75,6 +75,16 @@ button:hover {
   background: #74a7f7;
 }
 
+/* მეორეხარისხოვანი ღილაკი — ერთ კომპიუტერზე თამაში */
+button.secondary {
+  background: #e6e9ef;
+  color: #4c4f69;
+}
+
+button.secondary:hover {
+  background: #dce0e8;
+}
+
 /* ---- თამაშის დაფა ---- */
 #score {
   display: flex;
