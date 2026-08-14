@@ -75,6 +75,16 @@ button:hover {
   background: #74a7f7;
 }
 
+/* მეორეხარისხოვანი ღილაკი — ერთ კომპიუტერზე თამაში */
+button.secondary {
+  background: #e6e9ef;
+  color: #4c4f69;
+}
+
+button.secondary:hover {
+  background: #dce0e8;
+}
+
 /* ---- თამაშის დაფა ---- */
 #score {
   display: flex;
@@ -150,6 +160,24 @@ button:hover {
 
 .cell:disabled {
   cursor: default;
+}
+
+/* ---- სახალისო ფრაზა გამარჯვებისას ---- */
+.win-phrase {
+  min-height: 26px;          /* ადგილი დაცულია, რომ ღილაკი არ ხტებოდეს */
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e66f5;
+}
+
+.win-phrase.show {
+  animation: phrase-pop 0.4s ease-out;
+}
+
+@keyframes phrase-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 #reset {
