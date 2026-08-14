@@ -1,0 +1,59 @@
+#!/bin/sh
+# pre-push — git ამ სკრიპტს უშვებს ყოველი `git push`-ის წინ.
+#
+# იგივე შემოწმებას აკეთებს, რასაც .github/workflows/check.yml სერვერზე.
+# თუ სინტაქსი გატეხილია → push ჩერდება და კოდი GitHub-ს ვერ აღწევს,
+# ე.ი. Pull Request-იც არ იხსნება გატეხილი კოდით.
+#
+# ჩასართავად (ერთხელ, ყოველ კომპიუტერზე):
+#   git config core.hooksPath .githooks
+#
+# გვერდის ავლა (მხოლოდ საჭიროებისას):
+#   git push --no-verify
+
+echo "🔍 push-ამდე შემოწმება: JavaScript სინტაქსი..."
+
+if ! command -v node > /dev/null 2>&1; then
+  echo "⚠️  node ვერ მოიძებნა — შემოწმება გამოტოვებულია."
+  echo "   კოდს სერვერზე მაინც შეამოწმებს GitHub Actions."
+  exit 0
+fi
+
+tmpdir=$(mktemp -d) || exit 1
+trap 'rm -rf "$tmpdir"' EXIT
+
+# ფაილების სია ცალკე ფაილში — თითო ხაზზე თითო სახელი.
+# `for f in $(find ...)` აქ არ გამოდგება: ის შედეგს ჰარებზე ჭრის და
+# სახელი ჰარით ("my script.js") ორ არარსებულ ფაილად იშლებოდა.
+find . -name "*.js" ! -path "./node_modules/*" ! -path "./.git/*" > "$tmpdir/files"
+
+failed=0
+found=0
+
+# სიას ფაილიდან ვკითხულობ (და არა pipe-ით), რომ ციკლი იმავე shell-ში დარჩეს —
+# pipe ქვე-shell-ს შექმნიდა და $failed გარეთ დაიკარგებოდა.
+# IFS= და -r ინარჩუნებს ჰარებსა და ხაზში არსებულ სპეცსიმბოლოებს.
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  found=1
+  if node --check "$f" 2> "$tmpdir/err"; then
+    echo "  ✅ $f"
+  else
+    echo "  ❌ $f"
+    sed 's/^/     /' "$tmpdir/err"
+    failed=1
+  fi
+done < "$tmpdir/files"
+
+if [ "$found" = "0" ]; then
+  echo "JavaScript ფაილი ვერ მოიძებნა."
+fi
+
+if [ "$failed" = "1" ]; then
+  echo ""
+  echo "🚫 push შეჩერდა — ჯერ გაასწორე სინტაქსის შეცდომა."
+  exit 1
+fi
+
+echo "✅ სინტაქსი წესრიგშია — ვაგრძელებ push-ს."
+exit 0
