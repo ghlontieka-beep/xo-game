@@ -19,21 +19,31 @@ if ! command -v node > /dev/null 2>&1; then
   exit 0
 fi
 
+tmpdir=$(mktemp -d) || exit 1
+trap 'rm -rf "$tmpdir"' EXIT
+
+# ფაილების სია ცალკე ფაილში — თითო ხაზზე თითო სახელი.
+# `for f in $(find ...)` აქ არ გამოდგება: ის შედეგს ჰარებზე ჭრის და
+# სახელი ჰარით ("my script.js") ორ არარსებულ ფაილად იშლებოდა.
+find . -name "*.js" ! -path "./node_modules/*" ! -path "./.git/*" > "$tmpdir/files"
+
 failed=0
 found=0
 
-for f in $(find . -name "*.js" -not -path "./node_modules/*" -not -path "./.git/*"); do
+# სიას ფაილიდან ვკითხულობ (და არა pipe-ით), რომ ციკლი იმავე shell-ში დარჩეს —
+# pipe ქვე-shell-ს შექმნიდა და $failed გარეთ დაიკარგებოდა.
+# IFS= და -r ინარჩუნებს ჰარებსა და ხაზში არსებულ სპეცსიმბოლოებს.
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
   found=1
-  if node --check "$f" 2>/tmp/xo-check-err; then
+  if node --check "$f" 2> "$tmpdir/err"; then
     echo "  ✅ $f"
   else
     echo "  ❌ $f"
-    sed 's/^/     /' /tmp/xo-check-err
+    sed 's/^/     /' "$tmpdir/err"
     failed=1
   fi
-done
-
-rm -f /tmp/xo-check-err
+done < "$tmpdir/files"
 
 if [ "$found" = "0" ]; then
   echo "JavaScript ფაილი ვერ მოიძებნა."

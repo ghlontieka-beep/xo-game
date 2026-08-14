@@ -22,12 +22,17 @@ jobs:
       - name: JavaScript სინტაქსის შემოწმება
         run: |
           set -e
+          # სია ცალკე ფაილში, თითო ხაზზე თითო სახელი.
+          # `for f in $(find ...)` შედეგს ჰარებზე ჭრიდა და სახელი ჰარით
+          # ("my script.js") ორ არარსებულ ფაილად იშლებოდა → ცრუ შეცდომა.
+          find . -name "*.js" ! -path "./node_modules/*" ! -path "./.git/*" > /tmp/js-files
           found=0
-          for f in $(find . -name "*.js" -not -path "./node_modules/*"); do
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
             echo "შემოწმება: $f"
             node --check "$f"
             found=1
-          done
+          done < /tmp/js-files
           if [ "$found" = "0" ]; then
             echo "JavaScript ფაილი ვერ მოიძებნა."
           fi
