@@ -197,6 +197,8 @@ function applyMove(index, player) {
     addScore(result.player);
     drawWinLine(result.line);
     showWinPhrase(result.line);
+    // ონლაინში შეძახილი მხოლოდ გამარჯვებულს ესმის; ერთ კომპიუტერზე — ყოველთვის
+    if (localMode || result.player === myMark) playWinSound();
     cells.forEach(cell => cell.disabled = true);
     return;
   }
@@ -290,6 +292,71 @@ function showWinPhrase(line) {
 function hideWinPhrase() {
   winPhraseText.textContent = "";
   winPhraseText.classList.remove("show");
+}
+
+// --- სახალისო აუდიო ეფექტი გამარჯვებისას ---
+// ხმა კოდით იქმნება (Web Audio API), აუდიო ფაილის გარეშე: არაფერი იტვირთება,
+// ინტერნეტიც არ სჭირდება და რეპოზიტორიაშიც არ ვდებთ მძიმე ფაილს.
+
+let audioCtx = null;
+
+function getAudioContext() {
+  if (audioCtx === null) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;            // ძველი ბრაუზერი — უხმოდ ვაგრძელებთ
+    audioCtx = new Ctx();
+  }
+  // ბრაუზერი ხმას ბლოკავს, სანამ მომხმარებელი არაფერს დააჭერს.
+  // მოგებამდე უჯრაზე დაჭერა უკვე მოხდა, ამიტომ აქ resume() უპრობლემოდ მუშაობს.
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+// ერთი ბგერა: ტალღის გენერატორი + ხმის მოცულობის მოსახვევი
+function playTone(note, t0) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const start = t0 + note.at;
+
+  osc.type = note.type;
+  osc.frequency.setValueAtTime(note.from, start);
+  if (note.to !== undefined) {
+    osc.frequency.exponentialRampToValueAtTime(note.to, start + note.dur);
+  }
+
+  // ნაზი შესვლა და მილევა — მკვეთრი ჩართვა/გამორთვა ტკაცუნს იწვევს
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(note.vol, start + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + note.dur);
+
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(start);
+  osc.stop(start + note.dur + 0.02);
+}
+
+// ხმის სცენარი: at = როდის დაიწყოს, dur = რამდენ ხანს გასტანს (წამებში)
+const WIN_SOUND = [
+  { at: 0.00, dur: 0.22, from: 380,     to: 1250, type: "sine",     vol: 0.22 }, // აწეული „ვუუპ!"
+  { at: 0.24, dur: 0.30, from: 523.25,            type: "triangle", vol: 0.16 }, // დო
+  { at: 0.34, dur: 0.30, from: 659.25,            type: "triangle", vol: 0.16 }, // მი
+  { at: 0.44, dur: 0.30, from: 783.99,            type: "triangle", vol: 0.16 }, // სოლ
+  { at: 0.54, dur: 0.30, from: 1046.50,           type: "triangle", vol: 0.16 }, // დო (ოქტავით ზემოთ)
+  { at: 0.72, dur: 0.55, from: 1046.50,           type: "triangle", vol: 0.20 }  // „ტა-დაამ!"
+];
+
+// მკაცრი ზედა ზღვარი — ხმა 3 წამს ვერ გასცდება
+const WIN_SOUND_MAX_SECONDS = 3;
+
+function playWinSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const t0 = ctx.currentTime + 0.02; // პატარა მარაგი, რომ პირველი ბგერა არ ჩამოიჭრას
+
+  for (const note of WIN_SOUND) {
+    if (note.at + note.dur > WIN_SOUND_MAX_SECONDS) continue;
+    playTone(note, t0);
+  }
 }
 
 // --- თავიდან დაწყება ---
